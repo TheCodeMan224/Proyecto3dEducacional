@@ -1,18 +1,33 @@
+let handPose;
+let video;
+let hands = [];
 function preload() {
   // put preload code here
+  handPose = ml5.handPose();
 }
 
 function setup() {
   // put setup code here
-  createCanvas(800,800,WEBGL)
+  createCanvas(320, 240);
+  video = createCapture(VIDEO);
+  video.size(640, 480);
+  video.hide();
+  handPose.detectStart(video, gotHands);
 }
 
 function draw() {
-  // put drawing code here
-  background(0)
-  fill("#FE9EC7")
-  rotateZ(frameCount * 0.01)
-  rotateX(frameCount * 0.01)
-  rotateY(frameCount * 0.01)
-  box(100)
+image(video, 0, 0, width, height);
+ for (let i = 0; i < hands.length; i++) {
+    let hand = hands[i];
+        for (let j = 0; j < hand.keypoints.length; j++) {
+      let keypoint = hand.keypoints[j];
+            fill(0, 255, 0);
+      noStroke();
+      circle(keypoint.x, keypoint.y, 10);
+    }
+  }
+}
+
+function gotHands(results) {
+  hands = results;
 }
