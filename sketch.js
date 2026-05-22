@@ -30,14 +30,6 @@ function draw() {
   let leftHand  = hands.find(h => h.handedness === "Left");
 
   if (rightHand) {
-    let finger = rightHand.keypoints[8];
-    let thumb  = rightHand.keypoints[4];
-    let centerX   = (finger.x + thumb.x) / 2;
-    let centerY   = (finger.y + thumb.y) / 2;
-    let pinchZoom = dist(finger.x, finger.y, thumb.x, thumb.y);
-    fill(0, 255, 0, 200); stroke(0); strokeWeight(2);
-    circle(centerX, centerY, pinchZoom);
-
     let wrist        = rightHand.keypoints[0];
     let middleFinger = rightHand.keypoints[12];
     centerX = (wrist.x + middleFinger.x) / 2;
