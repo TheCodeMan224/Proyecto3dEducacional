@@ -8,7 +8,7 @@ function preload() {
 
 function setup() {
   // put setup code here
-  createCanvas(320, 240);
+  createCanvas(640, 480);
   video = createCapture(VIDEO);
   video.size(640, 480);
   video.hide();
@@ -26,6 +26,23 @@ image(video, 0, 0, width, height);
       circle(keypoint.x, keypoint.y, 10);
     }
   }
+  if (hands.length > 0) {
+    let finger = hands[0].index_finger_tip;
+    let thumb = hands[0].thumb_tip;
+    let centerX = (finger.x + thumb.x) / 2;
+    let centerY = (finger.y + thumb.y) / 2;
+    let pinch = dist(finger.x, finger.y, thumb.x, thumb.y);
+    fill(0, 255, 0, 200);
+    stroke(0);
+    strokeWeight(2);
+    circle(centerX, centerY, pinch);
+  }
+}
+
+// Callback function for when handPose outputs data
+function gotHands(results) {
+  // Save the output to the hands variable
+  hands = results;
 }
 
 function gotHands(results) {
