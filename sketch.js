@@ -2,7 +2,8 @@ let handPose;
 let video;
 let hands = [];
 let zoom = 1;
-let modelo1;
+let modeloActual = 1;
+let modelo1,modelo2,modelo3,modelo4,modelo5,modelo6;
 let textura;
 let fuente;
 let camW = 200
@@ -10,16 +11,25 @@ let camH = 150
 let escala = camW / 640
 let rotX = 0;
 let rotY = 0;
-let buttonMod1;
-let buttonMod2;
+let buttonMod1,buttonMod2,buttonMod3,buttonMod4,buttonMod5,buttonMod6;
 let riffAudio;
 function preload() {
   // put preload code here
   handPose = ml5.handPose();
-  modelo1 = loadModel('./3dModels/articular_disc_tmj.obj', true)
+  modelo1 = loadModel('./3dModels/spine.obj', true)
+  modelo2 = loadModel('./3dModels/skull.obj', true)
+  modelo3 = loadModel('./3dModels/ribs.obj', true)
+  modelo4 = loadModel('./3dModels/arm.obj', true)
+  modelo5 = loadModel('./3dModels/leg.obj', true)
+  modelo6 = loadModel('./3dModels/pelvis.obj', true)
   textura = loadImage('./textures/bone.jpg')
   fuente = loadFont('./fonts/GROBOLD.ttf')
-  buttonMod1 = loadImage('./images/bad_to_the_bone.png')
+  buttonMod1 = loadImage('./images/spine.png')
+  buttonMod2 = loadImage('./images/bad_to_the_bone.png')
+  buttonMod3 = loadImage('./images/ribs.png')
+  buttonMod4 = loadImage('./images/arm.png')
+  buttonMod5 = loadImage('./images/leg.png')
+  buttonMod6 = loadImage('./images/pelvis.png')
   riffAudio = loadSound('./sounds/bad_to_the_bone_riff.mp3.mpeg');
 }
 
@@ -38,7 +48,11 @@ function draw() {
   let proporcionDerY=0;
   background(220)
   image(buttonMod1, 0 - windowWidth / 2, 0 - windowHeight / 2, 80, 80);
-  //button.mousePressed();
+  image(buttonMod2, 0 - windowWidth / 2, 0 - windowHeight / 2 + 90, 80, 80);
+  image(buttonMod3, 0 - windowWidth / 2, 0 - windowHeight / 2 + 180, 80, 80);
+  image(buttonMod4, 0 - windowWidth / 2, 0 - windowHeight / 2 + 270, 80, 80);
+  image(buttonMod5, 0 - windowWidth / 2, 0 - windowHeight / 2 + 360, 80, 80);
+  image(buttonMod6, 0 - windowWidth / 2, 0 - windowHeight / 2 + 450, 80, 80);
   push()
   ambientLight(80)                          
   directionalLight(255, 255, 255, 0, 0, -1) 
@@ -52,7 +66,7 @@ function draw() {
   rotateY(PI)
   rotateX(rotX)
   rotateY(rotY)
-  model(modelo1)
+  model(modelSelection(modeloActual))
   pop()
 
   let rightHand = hands.find(h => h.handedness === "Right");
@@ -171,18 +185,56 @@ function controlRotY(v) {
 }
 
 function mousePressed() {
-  // En WEBGL, convertimos mouseX y mouseY al espacio del centro de la pantalla
   let webglMouseX = mouseX - windowWidth / 2;
   let webglMouseY = mouseY - windowHeight / 2;
 
-  // CORRECCIÓN: Ajustada la detección de colisión matemática con la pantalla para que coincida exactamente con la posición física del botón
-  if (webglMouseX >= 0 - windowWidth / 2 && webglMouseX <= 0 - windowWidth / 2 + 80 &&
-      webglMouseY >= 0 - windowHeight / 2 && webglMouseY <= 0 - windowHeight / 2 + 80) {
+  // Todos los botones comparten el mismo rango en X (el ancho de 80px en el extremo izquierdo)
+  if (webglMouseX >= 0 - windowWidth / 2 && webglMouseX <= 0 - windowWidth / 2 + 80) {
     
-    // Si el audio ya se está reproduciendo, lo detiene antes de volver a empezar
-    if (riffAudio.isPlaying()) {
-      riffAudio.stop();
+    // Botón 1 (Columna vertebral) -> Y de 0 a 80
+    if (webglMouseY >= 0 - windowHeight / 2 && webglMouseY <= 0 - windowHeight / 2 + 80) {
+      modeloActual = 1;
     }
-    riffAudio.play();
+    
+    // Botón 2 (Cráneo / Riff de audio) -> Y de 90 a 170
+    else if (webglMouseY >= 0 - windowHeight / 2 + 90 && webglMouseY <= 0 - windowHeight / 2 + 170) {
+      modeloActual = 2;
+      if (riffAudio.isPlaying()) {
+        riffAudio.stop();
+      }
+      riffAudio.play();
+    }
+    
+    // Botón 3 (Costillas) -> Y de 180 a 260
+    else if (webglMouseY >= 0 - windowHeight / 2 + 180 && webglMouseY <= 0 - windowHeight / 2 + 260) {
+      modeloActual = 3;
+    }
+    
+    // Botón 4 (Brazo) -> Y de 270 a 350
+    else if (webglMouseY >= 0 - windowHeight / 2 + 270 && webglMouseY <= 0 - windowHeight / 2 + 350) {
+      modeloActual = 4;
+    }
+    
+    // Botón 5 (Pierna) -> Y de 360 a 440
+    else if (webglMouseY >= 0 - windowHeight / 2 + 360 && webglMouseY <= 0 - windowHeight / 2 + 440) {
+      modeloActual = 5;
+    }
+    
+    // Botón 6 (Pelvis) -> Y de 450 a 530
+    else if (webglMouseY >= 0 - windowHeight / 2 + 450 && webglMouseY <= 0 - windowHeight / 2 + 530) {
+      modeloActual = 6;
+    }
+  }
+}
+
+function modelSelection(modelo) {
+  switch (modelo) {
+    case 1: return modelo1;
+    case 2: return modelo2;
+    case 3: return modelo3;
+    case 4: return modelo4;
+    case 5: return modelo5;
+    case 6: return modelo6;
+    default: return modelo1;
   }
 }
