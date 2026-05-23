@@ -8,6 +8,8 @@ let fuente;
 let camW = 200
 let camH = 150
 let escala = camW / 640
+let rotX = 0;
+let rotY = 0;
 function preload() {
   // put preload code here
   handPose = ml5.handPose();
@@ -26,6 +28,9 @@ function setup() {
 }
 
 function draw() {
+  let proporcionIz = 1;
+  let proporcionDerX=0;
+  let proporcionDerY=0;
   background(220)
 
   push()
@@ -37,6 +42,8 @@ function draw() {
   textureMode(NORMAL)
   noStroke()
   scale(zoom)
+  rotateX(rotX)
+  rotateY(rotY)
   model(modelo)
   pop()
 
@@ -91,6 +98,12 @@ function draw() {
     let indexMcp = rightHand.keypoints[5];
     let pinkyMcp = rightHand.keypoints[17];
     let pinchY = dist(indexMcp.x, indexMcp.y, pinkyMcp.x, pinkyMcp.y);
+    let punto1X = rightHand.keypoints[5];
+    let punto2X = rightHand.keypoints[17];
+     let punto1Y = rightHand.keypoints[0];
+    let punto2Y = rightHand.keypoints[12];
+    proporcionDerX = dist(punto1X.x, punto1X.y, punto2X.x, punto2X.y) / pinchX;
+    proporcionDerY = dist(punto1Y.x, punto1Y.y, punto2Y.x, punto2Y.y) / pinchY;
     push()
     resetShader()
     textFont(fuente)      
@@ -98,22 +111,39 @@ function draw() {
     textSize(20)
     text("PinchX: " + nf(pinchX,1,1), -width/2 + 10, -height/2 + 30)
     text("PinchY: " + nf(pinchY,1,1), -width/2 + 10, -height/2 + 55)
+    text("ProporciónDerX: " + nf(proporcionDerX,1,1), -width/2 + 10, -height/2 + 135)
+    text("ProporciónDerY: " + nf(proporcionDerY,1,1), -width/2 + 10, -height/2 + 160)
     pop()
   }
   if (leftHand) {
     let finger = leftHand.keypoints[8];
     let thumb  = leftHand.keypoints[4];
     let pinchZoom  = dist(finger.x, finger.y, thumb.x, thumb.y);
+    let punto1 = leftHand.keypoints[5];
+    let punto2  = leftHand.keypoints[17];
+    proporcionIz=dist(punto1.x, punto1.y, punto2.x, punto2.y)/pinchZoom;
     push()
     resetShader()
     textFont(fuente)      
     fill(255, 0, 0); noStroke()
     textSize(20)
     text("Zoom: " + nf(pinchZoom,1,1), -width/2 + 10, -height/2 + 85)
+    text("ProporciónZoom: " + nf(proporcionIz,1,1), -width/2 + 10, -height/2 + 110)
     pop()
   }
 
-  controlZoom(0.0);
+  if(proporcionIz > 2){
+    controlZoom(-0.03)
+  } else if(proporcionIz < .6){
+    controlZoom(0.03)
+  }
+  if (proporcionDerX > .5) {
+      controlRotX(-0.04)
+    }
+
+    if (proporcionDerY > 3) {
+      controlRotY(-0.03)
+    } 
 }
 
 function gotHands(results) {
@@ -122,4 +152,12 @@ function gotHands(results) {
 
 function controlZoom(v){
   zoom += v;
+}
+
+function controlRotX(v) {  // ← nueva, misma estructura que controlZoom
+  rotX += v;
+}
+
+function controlRotY(v) {  // ← nueva, por si quieres usarla después
+  rotY += v;
 }
