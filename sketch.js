@@ -42,6 +42,8 @@ function draw() {
   textureMode(NORMAL)
   noStroke()
   scale(zoom)
+  rotateX(PI)
+  rotateY(PI)
   rotateX(rotX)
   rotateY(rotY)
   model(modelo)
