@@ -8,15 +8,17 @@ function preload() {
 
 function setup() {
   // put setup code here
-  createCanvas(640, 480);
+  createCanvas(1020, 720);
   video = createCapture(VIDEO);
-  video.size(640, 480);
+  video.size(1020, 720);
   video.hide();
   handPose.detectStart(video, gotHands);
 }
 
 function draw() {
   image(video, 0, 0, width, height);
+
+  // Keypoints de todas las manos
   for (let i = 0; i < hands.length; i++) {
     let hand = hands[i];
     for (let j = 0; j < hand.keypoints.length; j++) {
@@ -26,6 +28,8 @@ function draw() {
       circle(keypoint.x, keypoint.y, 10);
     }
   }
+
+  // Buscar cada mano por handedness, sin asumir su índice
   let rightHand = hands.find(h => h.handedness === "Right");
   let leftHand  = hands.find(h => h.handedness === "Left");
 
