@@ -1,24 +1,52 @@
 let handPose;
 let video;
 let hands = [];
+let zoom = 1;
+let modelo;
+let textura;
+let fuente;
+let camW = 200
+let camH = 150
+let escala = camW / 640
 function preload() {
   // put preload code here
   handPose = ml5.handPose();
+  modelo = loadModel('./3dModels/articular_disc_tmj.obj', true)
+  textura = loadImage('./textures/bone.jpg')
+  fuente = loadFont('./fonts/GROBOLD.ttf')
 }
 
 function setup() {
   // put setup code here
-  createCanvas(1020, 720);
+  createCanvas(windowWidth, windowHeight, WEBGL);
   video = createCapture(VIDEO);
-  video.size(1020, 720);
+  video.size(640, 480);
   video.hide();
   handPose.detectStart(video, gotHands);
 }
 
 function draw() {
-  image(video, 0, 0, width, height);
+  background(220)
 
-  // Keypoints de todas las manos
+  push()
+  ambientLight(80)                          
+  directionalLight(255, 255, 255, 0, 0, -1) 
+  directionalLight(150, 120, 100, 1, 1, 0)  
+  specularMaterial(50)                 
+  texture(textura)
+  textureMode(NORMAL)
+  noStroke()
+  scale(zoom)
+  model(modelo)
+  pop()
+
+  let rightHand = hands.find(h => h.handedness === "Right");
+  let leftHand  = hands.find(h => h.handedness === "Left");
+
+  push()
+  translate(width/2 - camW, height/2 - camH)
+  scale(escala)
+  image(video, 0, 0, 640, 480)
   for (let i = 0; i < hands.length; i++) {
     let hand = hands[i];
     for (let j = 0; j < hand.keypoints.length; j++) {
@@ -28,18 +56,13 @@ function draw() {
       circle(keypoint.x, keypoint.y, 10);
     }
   }
-
-  // Buscar cada mano por handedness, sin asumir su índice
-  let rightHand = hands.find(h => h.handedness === "Right");
-  let leftHand  = hands.find(h => h.handedness === "Left");
-
   if (rightHand) {
     let wrist        = rightHand.keypoints[0];
     let middleFinger = rightHand.keypoints[12];
-    centerX = (wrist.x + middleFinger.x) / 2;
-    centerY = (wrist.y + middleFinger.y) / 2;
+    let centerX = (wrist.x + middleFinger.x) / 2;
+    let centerY = (wrist.y + middleFinger.y) / 2;
     let pinchX = dist(wrist.x, wrist.y, middleFinger.x, middleFinger.y);
-    fill(255, 0, 0, 200); stroke(0); strokeWeight(2);
+    fill(255, 0, 0, 220); stroke(0); strokeWeight(2);
     circle(centerX, centerY, pinchX);
 
     let indexMcp = rightHand.keypoints[5];
@@ -47,21 +70,56 @@ function draw() {
     centerX = (indexMcp.x + pinkyMcp.x) / 2;
     centerY = (indexMcp.y + pinkyMcp.y) / 2;
     let pinchY = dist(indexMcp.x, indexMcp.y, pinkyMcp.x, pinkyMcp.y);
-    fill(0, 0, 255, 200); stroke(0); strokeWeight(2);
+    fill(0, 0, 255, 220); stroke(0); strokeWeight(2);
     circle(centerX, centerY, pinchY);
   }
-
   if (leftHand) {
     let finger = leftHand.keypoints[8];
     let thumb  = leftHand.keypoints[4];
     let centerX = (finger.x + thumb.x) / 2;
     let centerY = (finger.y + thumb.y) / 2;
-    let pinchY  = dist(finger.x, finger.y, thumb.x, thumb.y);
-    fill(0, 255, 255, 200); stroke(0); strokeWeight(2);
-    circle(centerX, centerY, pinchY);
+    let pinchZoom  = dist(finger.x, finger.y, thumb.x, thumb.y);
+    fill(0, 255, 255, 220); stroke(0); strokeWeight(2);
+    circle(centerX, centerY, pinchZoom);
   }
+  pop() 
+
+  if (rightHand) {
+    let wrist        = rightHand.keypoints[0];
+    let middleFinger = rightHand.keypoints[12];
+    let pinchX = dist(wrist.x, wrist.y, middleFinger.x, middleFinger.y);
+    let indexMcp = rightHand.keypoints[5];
+    let pinkyMcp = rightHand.keypoints[17];
+    let pinchY = dist(indexMcp.x, indexMcp.y, pinkyMcp.x, pinkyMcp.y);
+    push()
+    resetShader()
+    textFont(fuente)      
+    fill(255, 0, 0); noStroke()
+    textSize(20)
+    text("PinchX: " + nf(pinchX,1,1), -width/2 + 10, -height/2 + 30)
+    text("PinchY: " + nf(pinchY,1,1), -width/2 + 10, -height/2 + 55)
+    pop()
+  }
+  if (leftHand) {
+    let finger = leftHand.keypoints[8];
+    let thumb  = leftHand.keypoints[4];
+    let pinchZoom  = dist(finger.x, finger.y, thumb.x, thumb.y);
+    push()
+    resetShader()
+    textFont(fuente)      
+    fill(255, 0, 0); noStroke()
+    textSize(20)
+    text("Zoom: " + nf(pinchZoom,1,1), -width/2 + 10, -height/2 + 85)
+    pop()
+  }
+
+  controlZoom(0.0);
 }
 
 function gotHands(results) {
   hands = results;
+}
+
+function controlZoom(v){
+  zoom += v;
 }
