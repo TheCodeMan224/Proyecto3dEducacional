@@ -2,7 +2,7 @@ let handPose;
 let video;
 let hands = [];
 let zoom = 1;
-let modelo;
+let modelo1;
 let textura;
 let fuente;
 let camW = 200
@@ -10,12 +10,17 @@ let camH = 150
 let escala = camW / 640
 let rotX = 0;
 let rotY = 0;
+let buttonMod1;
+let buttonMod2;
+let riffAudio;
 function preload() {
   // put preload code here
   handPose = ml5.handPose();
-  modelo = loadModel('./3dModels/articular_disc_tmj.obj', true)
+  modelo1 = loadModel('./3dModels/articular_disc_tmj.obj', true)
   textura = loadImage('./textures/bone.jpg')
   fuente = loadFont('./fonts/GROBOLD.ttf')
+  buttonMod1 = loadImage('./images/bad_to_the_bone.png')
+  riffAudio = loadSound('./sounds/bad_to_the_bone_riff.mp3.mpeg');
 }
 
 function setup() {
@@ -32,7 +37,8 @@ function draw() {
   let proporcionDerX=0;
   let proporcionDerY=0;
   background(220)
-
+  image(buttonMod1, 0 - windowWidth / 2, 0 - windowHeight / 2, 80, 80);
+  //button.mousePressed();
   push()
   ambientLight(80)                          
   directionalLight(255, 255, 255, 0, 0, -1) 
@@ -46,7 +52,7 @@ function draw() {
   rotateY(PI)
   rotateX(rotX)
   rotateY(rotY)
-  model(modelo)
+  model(modelo1)
   pop()
 
   let rightHand = hands.find(h => h.handedness === "Right");
@@ -106,7 +112,7 @@ function draw() {
     let punto2Y = rightHand.keypoints[12];
     proporcionDerX = dist(punto1X.x, punto1X.y, punto2X.x, punto2X.y) / pinchX;
     proporcionDerY = dist(punto1Y.x, punto1Y.y, punto2Y.x, punto2Y.y) / pinchY;
-    push()
+    /*push()
     resetShader()
     textFont(fuente)      
     fill(255, 0, 0); noStroke()
@@ -115,7 +121,7 @@ function draw() {
     text("PinchY: " + nf(pinchY,1,1), -width/2 + 10, -height/2 + 55)
     text("ProporciónDerX: " + nf(proporcionDerX,1,1), -width/2 + 10, -height/2 + 135)
     text("ProporciónDerY: " + nf(proporcionDerY,1,1), -width/2 + 10, -height/2 + 160)
-    pop()
+    pop()*/
   }
   if (leftHand) {
     let finger = leftHand.keypoints[8];
@@ -124,14 +130,14 @@ function draw() {
     let punto1 = leftHand.keypoints[5];
     let punto2  = leftHand.keypoints[17];
     proporcionIz=dist(punto1.x, punto1.y, punto2.x, punto2.y)/pinchZoom;
-    push()
+    /*push()
     resetShader()
     textFont(fuente)      
     fill(255, 0, 0); noStroke()
     textSize(20)
     text("Zoom: " + nf(pinchZoom,1,1), -width/2 + 10, -height/2 + 85)
     text("ProporciónZoom: " + nf(proporcionIz,1,1), -width/2 + 10, -height/2 + 110)
-    pop()
+    pop()*/
   }
 
   if(proporcionIz > 2){
@@ -156,10 +162,27 @@ function controlZoom(v){
   zoom += v;
 }
 
-function controlRotX(v) {  // ← nueva, misma estructura que controlZoom
+function controlRotX(v) { 
   rotX += v;
 }
 
-function controlRotY(v) {  // ← nueva, por si quieres usarla después
+function controlRotY(v) {  
   rotY += v;
+}
+
+function mousePressed() {
+  // En WEBGL, convertimos mouseX y mouseY al espacio del centro de la pantalla
+  let webglMouseX = mouseX - windowWidth / 2;
+  let webglMouseY = mouseY - windowHeight / 2;
+
+  // CORRECCIÓN: Ajustada la detección de colisión matemática con la pantalla para que coincida exactamente con la posición física del botón
+  if (webglMouseX >= 0 - windowWidth / 2 && webglMouseX <= 0 - windowWidth / 2 + 80 &&
+      webglMouseY >= 0 - windowHeight / 2 && webglMouseY <= 0 - windowHeight / 2 + 80) {
+    
+    // Si el audio ya se está reproduciendo, lo detiene antes de volver a empezar
+    if (riffAudio.isPlaying()) {
+      riffAudio.stop();
+    }
+    riffAudio.play();
+  }
 }
