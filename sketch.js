@@ -13,6 +13,15 @@ let rotX = 0;
 let rotY = 0;
 let buttonMod1,buttonMod2,buttonMod3,buttonMod4,buttonMod5,buttonMod6;
 let riffAudio;
+let wikiText = "";
+let wikiTitulos = {
+  1: "Columna_vertebral",
+  2: "Cráneo",
+  3: "Costilla",
+  4: "Brazo",
+  5: "Pierna",
+  6: "Pelvis"
+};
 function preload() {
   // put preload code here
   handPose = ml5.handPose();
@@ -40,6 +49,25 @@ function setup() {
   video.size(640, 480);
   video.hide();
   handPose.detectStart(video, gotHands);
+  fetchAsync(modeloActual);
+ divTexto = createDiv('');
+divTexto.style('position', 'absolute');
+divTexto.style('right', '0px');         
+divTexto.style('top', '0px');        
+divTexto.style('width', '220px');       
+divTexto.style('height', '75vh');        
+divTexto.style('overflow-y', 'auto');
+divTexto.style('font-size', '14px');
+divTexto.style('font-family', 'Arial');
+divTexto.style('color', 'white');
+divTexto.style('padding', '10px');
+divTexto.style('box-sizing', 'border-box');
+divTexto.style('background', 'rgba(0, 0, 0, 0.65)');
+divTexto.style('border-left', '3px solid rgba(255, 255, 255, 0.69)');
+divTexto.style('border-top', '3px solid rgba(255,255,255,0.3)');
+divTexto.style('border-radius', '8px 0 0 0');
+divTexto.style('backdrop-filter', 'blur(4px)');
+divTexto.style('pointer-events', 'auto');
 }
 
 function draw() {
@@ -71,7 +99,6 @@ function draw() {
 
   let rightHand = hands.find(h => h.handedness === "Right");
   let leftHand  = hands.find(h => h.handedness === "Left");
-
   push()
   translate(width/2 - camW, height/2 - camH)
   scale(escala)
@@ -185,44 +212,50 @@ function controlRotY(v) {
 }
 
 function mousePressed() {
+  
   let webglMouseX = mouseX - windowWidth / 2;
   let webglMouseY = mouseY - windowHeight / 2;
 
-  // Todos los botones comparten el mismo rango en X (el ancho de 80px en el extremo izquierdo)
   if (webglMouseX >= 0 - windowWidth / 2 && webglMouseX <= 0 - windowWidth / 2 + 80) {
     
-    // Botón 1 (Columna vertebral) -> Y de 0 a 80
+    // Botón 1 (Columna vertebral)
     if (webglMouseY >= 0 - windowHeight / 2 && webglMouseY <= 0 - windowHeight / 2 + 80) {
-      modeloActual = 1;
-    }
+  modeloActual = 1;
+  fetchAsync(1); 
+}
     
-    // Botón 2 (Cráneo / Riff de audio) -> Y de 90 a 170
+    // Botón 2 (Cráneo)
     else if (webglMouseY >= 0 - windowHeight / 2 + 90 && webglMouseY <= 0 - windowHeight / 2 + 170) {
       modeloActual = 2;
+        fetchAsync(2); 
       if (riffAudio.isPlaying()) {
         riffAudio.stop();
       }
       riffAudio.play();
     }
     
-    // Botón 3 (Costillas) -> Y de 180 a 260
+    // Botón 3 (Costillas)
     else if (webglMouseY >= 0 - windowHeight / 2 + 180 && webglMouseY <= 0 - windowHeight / 2 + 260) {
       modeloActual = 3;
+        fetchAsync(3);
     }
     
-    // Botón 4 (Brazo) -> Y de 270 a 350
+    // Botón 4 (Brazo) ->
     else if (webglMouseY >= 0 - windowHeight / 2 + 270 && webglMouseY <= 0 - windowHeight / 2 + 350) {
       modeloActual = 4;
+        fetchAsync(4);
     }
     
-    // Botón 5 (Pierna) -> Y de 360 a 440
+    // Botón 5 (Pierna)
     else if (webglMouseY >= 0 - windowHeight / 2 + 360 && webglMouseY <= 0 - windowHeight / 2 + 440) {
       modeloActual = 5;
+        fetchAsync(5);
     }
     
-    // Botón 6 (Pelvis) -> Y de 450 a 530
+    // Botón 6 (Pelvis)
     else if (webglMouseY >= 0 - windowHeight / 2 + 450 && webglMouseY <= 0 - windowHeight / 2 + 530) {
       modeloActual = 6;
+        fetchAsync(6);
     }
   }
 }
@@ -236,5 +269,25 @@ function modelSelection(modelo) {
     case 5: return modelo5;
     case 6: return modelo6;
     default: return modelo1;
+  }
+}
+
+async function doFetch(modelo) {
+  let titulo = wikiTitulos[modelo];
+  let url = `https://es.wikipedia.org/w/api.php?action=query&titles=${titulo}&prop=extracts&exintro=true&explaintext=true&format=json&origin=*`;
+  const rsp = await fetch(url);
+  const data = await rsp.json();
+  let pages = data.query.pages;
+  let pageId = Object.keys(pages)[0];
+  return pages[pageId].extract;
+}
+
+async function fetchAsync(modelo) {
+  try {
+    let texto = await doFetch(modelo);
+    divTexto.html(`<b>${wikiTitulos[modelo].replace(/_/g, " ")}</b><br><br>${texto}`);
+  } catch(err) {
+    console.error(err.message);
+    divTexto.html("Error al cargar información.");
   }
 }
